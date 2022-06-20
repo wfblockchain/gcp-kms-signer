@@ -1,4 +1,4 @@
-package digestSigner
+package digestsigner
 
 import (
 	"github.com/ethereum/go-ethereum/common"

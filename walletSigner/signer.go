@@ -1,4 +1,4 @@
-package walletSigner
+package walletsigner
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/kolobok01/gcp-kms-signer-dlt/digest_signer"
+	"github.com/kolobok01/gcp-kms-signer-dlt/digestSigner"
 )
 
 var _ accounts.Wallet = (*Signer)(nil)
 
 type Signer struct {
-	kmsSigner *digest_signer.KMSSigner
+	kmsSigner *digestSigner.KMSSigner
 	timeout   time.Duration
 }
 

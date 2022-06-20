@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/kolobok01/gcp-kms-signer-dlt/digest_signer"
 )
 
 // pkcs8 reflects an ASN.1, PKCS #8 PrivateKey. See

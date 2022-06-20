@@ -1,4 +1,4 @@
-package digestSigner
+package digestsigner
 
 import (
 	"crypto/ecdsa"
