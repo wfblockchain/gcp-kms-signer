@@ -11,13 +11,13 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/kolobok01/gcp-kms-signer-dlt/digestSigner"
+	digestsigner "github.com/kolobok01/gcp-kms-signer-dlt/digestSigner"
 )
 
 var _ accounts.Wallet = (*Signer)(nil)
 
 type Signer struct {
-	kmsSigner *digestSigner.KMSSigner
+	kmsSigner *digestsigner.KMSSigner
 	timeout   time.Duration
 }
 
@@ -197,15 +197,6 @@ func (s *Signer) SignTx(account accounts.Account, tx *types.Transaction, chainID
 		res[64] -= 27 // Transform V from Ethereum-legacy to 0/1
 	}
 	return tx.WithSignature(signer, res)
-}
-
-func (s *Signer) sendTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (bool, error) {
-	signedTx, err := s.SignTx(account, tx, chainID)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
 }
 
 // SignTxWithPassphrase is identical to SignTx, but also takes a password
