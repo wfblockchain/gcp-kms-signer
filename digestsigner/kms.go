@@ -130,7 +130,7 @@ func (k *KMSSigner) SignDigest(ctx context.Context, address common.Address, dige
 
 	// TODO: is ther a better way to determine the value of V?
 	if !verifyDigest(address, digest, sig) {
-		sig[64] += 1
+		sig[64]++
 		if !verifyDigest(address, digest, sig) {
 			return nil, fmt.Errorf("AsymmetricSign: signature failed, unable to determine V")
 		}
@@ -177,7 +177,7 @@ func (k *KMSSigner) setAddress(ctx context.Context, key string) error {
 	if err != nil {
 		return err
 	}
-	pk, err := pemToPubkey(resp.Pem)
+	pk, err := PemToPubkey(resp.Pem)
 	if err != nil {
 		return err
 	}
