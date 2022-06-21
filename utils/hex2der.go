@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/wfblockchain/gcp-kms-signer-dlt/digestsigner"
 )
 
 // pkcs8 reflects an ASN.1, PKCS #8 PrivateKey. See
@@ -51,12 +52,12 @@ func main() {
 	}
 
 	var privKey pkcs8
-	oidBytes, err := asn1.Marshal(digest_signer.OidSecp256k1)
+	oidBytes, err := asn1.Marshal(digestsigner.OidSecp256k1)
 	if err != nil {
 		log.Fatalf("x509: failed to marshal curve OID: %v\n", err)
 	}
 	privKey.Algo = pkix.AlgorithmIdentifier{
-		Algorithm: digest_signer.OidPublicKeyECDSA,
+		Algorithm: digestsigner.OidPublicKeyECDSA,
 		Parameters: asn1.RawValue{
 			FullBytes: oidBytes,
 		},

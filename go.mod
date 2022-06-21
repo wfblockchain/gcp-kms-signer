@@ -1,4 +1,4 @@
-module github.com/kolobok01/gcp-kms-signer-dlt
+module github.com/wfblockchain/gcp-kms-signer-dlt
 
 go 1.18
 

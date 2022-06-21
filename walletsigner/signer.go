@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	digestsigner "github.com/kolobok01/gcp-kms-signer-dlt/digestSigner"
+	digestsigner "github.com/wfblockchain/gcp-kms-signer-dlt/digestsigner"
 )
 
 var _ accounts.Wallet = (*Signer)(nil)
@@ -19,6 +19,13 @@ var _ accounts.Wallet = (*Signer)(nil)
 type Signer struct {
 	kmsSigner *digestsigner.KMSSigner
 	timeout   time.Duration
+}
+
+func NewSigner(ks *digestsigner.KMSSigner, timeout time.Duration) Signer {
+	signer := Signer{}
+	signer.kmsSigner = ks
+	signer.timeout = timeout
+	return signer
 }
 
 // URL retrieves the canonical path under which this wallet is reachable. It is
