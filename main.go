@@ -37,10 +37,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(kmsPK)
+	log.Printf("PEM to PK result: %v", kmsPK)
 
 	kmsAddress := crypto.PubkeyToAddress(*kmsPK)
-	log.Println(kmsAddress)
+	log.Printf("PK to Address result: %v", kmsAddress)
 
 	client, err := ethclient.Dial(rpcURL)
 	if err != nil {
@@ -72,8 +72,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(kmsSigner.GetAddresses())
 	signer := walletsigner.NewSigner(kmsSigner, 5)
+	log.Printf("signer accounts: %v", signer.Accounts())
 	signedTx, err := signer.SignTx(signer.Accounts()[0], tx, chainID)
 	if err != nil {
 		log.Fatal(err)
