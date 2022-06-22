@@ -9,11 +9,11 @@ import (
 
 var (
 	cred = &KMSCred{
-		ProjectID:  "certain-math-353822",
-		Location:   "us-east4",
-		KeyRing:    "wf_test",
-		Key:        "anvil_test_secp256k1",
-		KeyVersion: "1",
+		ProjectID: "certain-math-353822",
+		Location:  "us-east4",
+		KeyRing:   "wf_test",
+		Key:       "anvil_test_secp256k1",
+		// KeyVersion: "1",
 	}
 )
 

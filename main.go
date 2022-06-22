@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -47,6 +48,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	balance, err := client.BalanceAt(context.Background(), kmsAddress, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("current balance: %v", balance)
+
 	nonce, err := client.PendingNonceAt(ctx, kmsAddress)
 	if err != nil {
 		log.Fatal(err)
@@ -72,7 +79,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	signer := walletsigner.NewSigner(kmsSigner, 5)
+	signer := walletsigner.NewSigner(kmsSigner, 10*time.Second)
 	log.Printf("signer accounts: %v", signer.Accounts())
 	signedTx, err := signer.SignTx(signer.Accounts()[0], tx, chainID)
 	if err != nil {
@@ -84,5 +91,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("tx sent: %s", tx.Hash().Hex())
+	log.Printf("tx sent: %s", tx.Hash())
 }
