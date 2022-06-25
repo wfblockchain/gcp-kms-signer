@@ -70,24 +70,24 @@ func (s *KMSSigner) GetConnectionStatus() string {
 	return s.client.Connection().GetState().String()
 }
 
-func (k *KMSSigner) GetAddresses() []common.Address {
-	addresses := make([]common.Address, 0, len(k.addressVerionMap))
-	for k := range k.addressVerionMap {
+func (s *KMSSigner) GetAddresses() []common.Address {
+	addresses := make([]common.Address, 0, len(s.addressVerionMap))
+	for k := range s.addressVerionMap {
 		addresses = append(addresses, k)
 	}
 	return addresses
 }
 
-func (k *KMSSigner) ListVersionedKeys() map[common.Address]string {
+func (s *KMSSigner) ListVersionedKeys() map[common.Address]string {
 	result := map[common.Address]string{}
-	for k, v := range k.addressVerionMap {
+	for k, v := range s.addressVerionMap {
 		result[k] = v
 	}
 	return result
 }
 
-func (k *KMSSigner) SignDigest(ctx context.Context, address common.Address, digest []byte) ([]byte, error) {
-	keyVersion, ok := k.addressVerionMap[address]
+func (s *KMSSigner) SignDigest(ctx context.Context, address common.Address, digest []byte) ([]byte, error) {
+	keyVersion, ok := s.addressVerionMap[address]
 	if !ok {
 		return nil, fmt.Errorf("no eth private key found for address %s", address)
 	}
@@ -104,7 +104,7 @@ func (k *KMSSigner) SignDigest(ctx context.Context, address common.Address, dige
 	}
 
 	// Call the API.
-	result, err := k.client.AsymmetricSign(ctx, req)
+	result, err := s.client.AsymmetricSign(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -117,15 +117,15 @@ func (k *KMSSigner) SignDigest(ctx context.Context, address common.Address, dige
 	}
 
 	// recover R and S from the signature
-	r, s, err := recoverRS(result.Signature)
+	R, S, err := recoverRS(result.Signature)
 	if err != nil {
 		return nil, err
 	}
 
 	// Reconstruct the eth signature R || S || V
 	sig := make([]byte, 65)
-	copy(sig[:32], r.Bytes())
-	copy(sig[32:64], s.Bytes())
+	copy(sig[:32], R.Bytes())
+	copy(sig[32:64], S.Bytes())
 	sig[64] = 0x1b
 
 	// TODO: is ther a better way to determine the value of V?
@@ -139,15 +139,15 @@ func (k *KMSSigner) SignDigest(ctx context.Context, address common.Address, dige
 	return sig, nil
 }
 
-func (l *KMSSigner) Close() error {
-	return l.client.Close()
+func (s *KMSSigner) Close() error {
+	return s.client.Close()
 }
 
-func (k *KMSSigner) loadAddress(ctx context.Context, cfg *KMSCred) error {
+func (s *KMSSigner) loadAddress(ctx context.Context, cfg *KMSCred) error {
 	if cfg.KeyVersion == "" {
 		keyName := cfg.keyname()
-		k.resourcePath = keyName
-		it := k.client.ListCryptoKeyVersions(ctx, &kmspb.ListCryptoKeyVersionsRequest{
+		s.resourcePath = keyName
+		it := s.client.ListCryptoKeyVersions(ctx, &kmspb.ListCryptoKeyVersionsRequest{
 			Parent: keyName,
 			Filter: "state=ENABLED AND algorithm=EC_SIGN_SECP256K1_SHA256",
 		})
@@ -159,19 +159,19 @@ func (k *KMSSigner) loadAddress(ctx context.Context, cfg *KMSCred) error {
 			if err != nil {
 				return err
 			}
-			if err := k.setAddress(ctx, resp.GetName()); err != nil {
+			if err := s.setAddress(ctx, resp.GetName()); err != nil {
 				return err
 			}
 		}
 	} else {
-		k.resourcePath = cfg.keyversion()
-		return k.setAddress(ctx, cfg.keyversion())
+		s.resourcePath = cfg.keyversion()
+		return s.setAddress(ctx, cfg.keyversion())
 	}
 	return nil
 }
 
-func (k *KMSSigner) setAddress(ctx context.Context, key string) error {
-	resp, err := k.client.GetPublicKey(ctx, &kmspb.GetPublicKeyRequest{
+func (s *KMSSigner) setAddress(ctx context.Context, key string) error {
+	resp, err := s.client.GetPublicKey(ctx, &kmspb.GetPublicKeyRequest{
 		Name: key,
 	})
 	if err != nil {
@@ -181,6 +181,6 @@ func (k *KMSSigner) setAddress(ctx context.Context, key string) error {
 	if err != nil {
 		return err
 	}
-	k.addressVerionMap[crypto.PubkeyToAddress(*pk)] = key
+	s.addressVerionMap[crypto.PubkeyToAddress(*pk)] = key
 	return nil
 }

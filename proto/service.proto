@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "github.com/wfblockchain/gcp-kms-signer-dlt/proto;proto";
+
+message SignTxReq {
+    bytes tx = 1;
+}
+
+message SignTxResp {
+    bytes tx = 1;
+}
+
+service AddService {
+    rpc Sign(SignTxReq) returns (SignTxResp);
+}
