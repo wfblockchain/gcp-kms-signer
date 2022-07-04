@@ -2,6 +2,7 @@ package digestsigner
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 
@@ -37,6 +38,7 @@ type KMSSigner struct {
 	client           *kms.KeyManagementClient
 	resourcePath     string
 	addressVerionMap map[common.Address]string
+	kmsCred          *KMSCred
 }
 
 func NewKMSSigner(ctx context.Context, cfg *KMSCred) (*KMSSigner, error) {
@@ -47,14 +49,70 @@ func NewKMSSigner(ctx context.Context, cfg *KMSCred) (*KMSSigner, error) {
 	s := &KMSSigner{
 		client:           client,
 		addressVerionMap: map[common.Address]string{},
+		kmsCred:          cfg,
 	}
-	if err := s.loadAddress(ctx, cfg); err != nil {
+	if err := s.loadAddress(ctx); err != nil {
 		return nil, fmt.Errorf("failed to get addresses: %w", err)
 	}
 	if len(s.addressVerionMap) == 0 {
 		return nil, errors.New("no valid eth private key found")
 	}
 	return s, nil
+}
+
+func (s *KMSSigner) getPublicKey(ctx context.Context, key string) (*ecdsa.PublicKey, error) {
+	resp, err := s.client.GetPublicKey(ctx, &kmspb.GetPublicKeyRequest{
+		Name: key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	pk, err := pemToPubkey(resp.Pem)
+	if err != nil {
+		return nil, err
+	}
+	return pk, nil
+}
+
+// GetPubAddress fetches the PEM and converts to canonical ETH address
+func (s *KMSSigner) GetPubAddress(ctx context.Context) (common.Address, error) {
+	pk, err := s.GetPublicKey(ctx)
+	var address common.Address
+	if err != nil {
+		return address, err
+	}
+	return crypto.PubkeyToAddress(*pk), nil
+}
+
+// GetPublicKey fetches the PEM and converts to ecdsa public key format
+func (s *KMSSigner) GetPublicKey(ctx context.Context) (*ecdsa.PublicKey, error) {
+	if s.kmsCred.KeyVersion == "" {
+		keyName := s.kmsCred.keyname()
+		s.resourcePath = keyName
+		it := s.client.ListCryptoKeyVersions(ctx, &kmspb.ListCryptoKeyVersionsRequest{
+			Parent: keyName,
+			Filter: "state=ENABLED AND algorithm=EC_SIGN_SECP256K1_SHA256",
+		})
+		for {
+			resp, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return nil, err
+			}
+			pk, err := s.getPublicKey(ctx, resp.GetName())
+			if err != nil {
+				return nil, err
+			}
+			return pk, nil
+
+		}
+	} else {
+		s.resourcePath = s.kmsCred.keyversion()
+		return s.getPublicKey(ctx, s.kmsCred.keyversion())
+	}
+	return nil, errors.New("no pubkey found")
 }
 
 func (s *KMSSigner) HasAddress(addr common.Address) bool {
@@ -143,9 +201,9 @@ func (s *KMSSigner) Close() error {
 	return s.client.Close()
 }
 
-func (s *KMSSigner) loadAddress(ctx context.Context, cfg *KMSCred) error {
-	if cfg.KeyVersion == "" {
-		keyName := cfg.keyname()
+func (s *KMSSigner) loadAddress(ctx context.Context) error {
+	if s.kmsCred.KeyVersion == "" {
+		keyName := s.kmsCred.keyname()
 		s.resourcePath = keyName
 		it := s.client.ListCryptoKeyVersions(ctx, &kmspb.ListCryptoKeyVersionsRequest{
 			Parent: keyName,
@@ -164,20 +222,14 @@ func (s *KMSSigner) loadAddress(ctx context.Context, cfg *KMSCred) error {
 			}
 		}
 	} else {
-		s.resourcePath = cfg.keyversion()
-		return s.setAddress(ctx, cfg.keyversion())
+		s.resourcePath = s.kmsCred.keyversion()
+		return s.setAddress(ctx, s.kmsCred.keyversion())
 	}
 	return nil
 }
 
 func (s *KMSSigner) setAddress(ctx context.Context, key string) error {
-	resp, err := s.client.GetPublicKey(ctx, &kmspb.GetPublicKeyRequest{
-		Name: key,
-	})
-	if err != nil {
-		return err
-	}
-	pk, err := PemToPubkey(resp.Pem)
+	pk, err := s.getPublicKey(ctx, key)
 	if err != nil {
 		return err
 	}

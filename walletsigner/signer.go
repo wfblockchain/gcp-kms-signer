@@ -22,9 +22,7 @@ type Signer struct {
 }
 
 func NewSigner(ks *digestsigner.KMSSigner, timeout time.Duration) Signer {
-	signer := Signer{}
-	signer.kmsSigner = ks
-	signer.timeout = timeout
+	signer := Signer{kmsSigner: ks, timeout: timeout}
 	return signer
 }
 

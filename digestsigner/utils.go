@@ -62,7 +62,7 @@ func recoverRS(signature []byte) (r *big.Int, s *big.Int, err error) {
 	return r, s, nil
 }
 
-func PemToPubkey(pemString string) (*ecdsa.PublicKey, error) {
+func pemToPubkey(pemString string) (*ecdsa.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pemString))
 	derBytes := block.Bytes
 	var pki publicKeyInfo

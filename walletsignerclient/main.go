@@ -10,24 +10,14 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/wfblockchain/gcp-kms-signer-dlt/digestsigner"
 	pb "github.com/wfblockchain/gcp-kms-signer-dlt/proto"
 	"google.golang.org/grpc"
 )
 
-const pem = `-----BEGIN PUBLIC KEY-----
-MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEK+pIyZ5c51/TQQVfikG86gzOdzpRP4vf
-X0U93p2H9l6cw9acNdGoE9lVVPUp0/vMZ71ETrafJyWF7SwBcKg1GA==
------END PUBLIC KEY-----`
 const rpcURL = "https://cloudflare-eth.com"
 const sevaAddress = "0x4549f47920997A486e9986d2e3e4540230534A03"
 
 func genTestTx(ctx context.Context) (*types.Transaction, error) {
-	kmsPK, err := digestsigner.PemToPubkey(pem)
-	if err != nil {
-		return nil, err
-	}
-
 	kmsAddress := crypto.PubkeyToAddress(*kmsPK)
 
 	ethClient, err := ethclient.Dial(rpcURL)
