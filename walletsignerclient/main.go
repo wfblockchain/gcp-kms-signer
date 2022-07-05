@@ -49,7 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := pb.NewAddServiceClient(conn)
+	client := pb.NewWalletServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

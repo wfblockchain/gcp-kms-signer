@@ -3,6 +3,16 @@ syntax = "proto3";
 package proto;
 option go_package = "github.com/wfblockchain/gcp-kms-signer-dlt/proto;proto";
 
+service WalletService {
+    rpc Sign(SignTxReq) returns (SignTxResp);
+}
+
+service EthClientService {
+    rpc PendingNonceAt(ECNonceReq) returns (ECNonceResp);
+    rpc SuggestGasPrice(Empty) returns (ECGasPriceResp);
+    rpc SendTx(ECTxReq) returns (Empty);
+}
+
 message SignTxReq {
     bytes tx = 1;
 }
@@ -11,6 +21,21 @@ message SignTxResp {
     bytes tx = 1;
 }
 
-service AddService {
-    rpc Sign(SignTxReq) returns (SignTxResp);
+message ECNonceReq {
+    bytes addressBytes = 1;
+}
+
+message ECNonceResp {
+    uint64 nonce = 1;
+}
+
+message Empty {
+}
+
+message ECGasPriceResp {
+    bytes bigIntBytes = 1;
+}
+
+message ECTxReq {
+    bytes tx = 1;
 }

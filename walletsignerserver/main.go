@@ -27,7 +27,7 @@ var (
 )
 
 type server struct {
-	pb.UnimplementedAddServiceServer
+	pb.UnimplementedWalletServiceServer
 	ethclient *ec.Client
 	signer    *walletsigner.Signer
 }
@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pb.RegisterAddServiceServer(srv, server)
+	pb.RegisterWalletServiceServer(srv, server)
 	reflection.Register(srv)
 
 	if e := srv.Serve(listener); e != nil {
