@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const rpcURL = "https://cloudflare-eth.com"
+const rpcURL = "https://rpc.flashbots.net/"
 
 type server struct {
 	pb.UnimplementedEthClientServiceServer
@@ -44,6 +44,7 @@ func (s *server) SuggestGasPrice(ctx context.Context, request *pb.Empty) (*pb.EC
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("gas price on server side: %v", gasPrice)
 	gasPriceBytes, err := gasPrice.MarshalText()
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func (s *server) SendTx(ctx context.Context, request *pb.ECTxReq) (*pb.Empty, er
 }
 
 func main() {
-	listener, err := net.Listen("tcp", ":50051")
+	listener, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatal(err)
 	}
