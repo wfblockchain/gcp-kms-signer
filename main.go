@@ -10,7 +10,6 @@ import (
 	"github.com/wfblockchain/gcp-kms-signer-dlt/walletsigner"
 )
 
-const rpcURL = "https://cloudflare-eth.com"
 const sevaAddress = "0x4549f47920997A486e9986d2e3e4540230534A03"
 
 var (

@@ -14,6 +14,18 @@ service EthClientService {
     rpc SuggestGasPrice(Empty) returns (ECGasPriceResp);
 }
 
+service AMLService {
+    rpc Check(AMLReq) returns (AMLResp);
+}
+
+message AMLReq {
+    bytes addressBytes = 1;
+}
+
+message AMLResp {
+    bool block = 1;
+}
+
 message SignTxReq {
     bytes tx = 1;
 }

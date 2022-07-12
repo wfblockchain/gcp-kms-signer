@@ -32,10 +32,6 @@ type server struct {
 }
 
 func newServer() (*server, error) {
-	client, err := ec.Dial(rpcURL)
-	if err != nil {
-		return nil, err
-	}
 
 	ctx := context.Background()
 	kmsSigner, err := digestsigner.NewKMSSigner(ctx, cred)
