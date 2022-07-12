@@ -8,9 +8,10 @@ service WalletService {
 }
 
 service EthClientService {
+    rpc NetworkID(Empty) returns (ECChainIDResp);
     rpc PendingNonceAt(ECNonceReq) returns (ECNonceResp);
-    rpc SuggestGasPrice(Empty) returns (ECGasPriceResp);
     rpc SendTx(ECTxReq) returns (Empty);
+    rpc SuggestGasPrice(Empty) returns (ECGasPriceResp);
 }
 
 message SignTxReq {
@@ -38,4 +39,8 @@ message ECGasPriceResp {
 
 message ECTxReq {
     bytes tx = 1;
+}
+
+message ECChainIDResp {
+    bytes bigIntBytes = 1;
 }

@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	rpcURL = "https://cloudflare-eth.com"
-	cred   = &digestsigner.KMSCred{
+	cred = &digestsigner.KMSCred{
 		ProjectID:  "certain-math-353822",
 		Location:   "us-east4",
 		KeyRing:    "wf_test",

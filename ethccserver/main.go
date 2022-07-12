@@ -25,7 +25,6 @@ func newServer(rpcURL string) (*server, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &server{ethclient: client}, nil
 }
 
@@ -39,12 +38,24 @@ func (s *server) PendingNonceAt(ctx context.Context, request *pb.ECNonceReq) (*p
 	return &pb.ECNonceResp{Nonce: nonce}, nil
 }
 
+// NetworkID returns the network ID (also known as the chain ID) for this chain.
+func (s *server) NetworkID(ctx context.Context, request *pb.Empty) (*pb.ECChainIDResp, error) {
+	chainID, err := s.ethclient.NetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	chainIDBytes, err := chainID.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ECChainIDResp{BigIntBytes: chainIDBytes}, nil
+}
+
 func (s *server) SuggestGasPrice(ctx context.Context, request *pb.Empty) (*pb.ECGasPriceResp, error) {
 	gasPrice, err := s.ethclient.SuggestGasPrice(ctx)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("gas price on server side: %v", gasPrice)
 	gasPriceBytes, err := gasPrice.MarshalText()
 	if err != nil {
 		return nil, err
