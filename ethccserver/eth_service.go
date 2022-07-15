@@ -2,18 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
-	"net"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	ec "github.com/ethereum/go-ethereum/ethclient"
 	pb "github.com/wfblockchain/gcp-kms-signer-dlt/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
-
-const rpcURL = "https://rpc.flashbots.net/"
 
 type server struct {
 	pb.UnimplementedEthClientServiceServer
@@ -74,24 +68,4 @@ func (s *server) SendTx(ctx context.Context, request *pb.ECTxReq) (*pb.Empty, er
 		return nil, err
 	}
 	return &pb.Empty{}, nil
-}
-
-func main() {
-	listener, err := net.Listen("tcp", ":50052")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := grpc.NewServer()
-
-	server, err := newServer(rpcURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pb.RegisterEthClientServiceServer(srv, server)
-	reflection.Register(srv)
-
-	if e := srv.Serve(listener); e != nil {
-		log.Fatal(err)
-	}
 }
