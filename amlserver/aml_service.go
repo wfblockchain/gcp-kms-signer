@@ -2,17 +2,11 @@ package main
 
 import (
 	"context"
-	"log"
-	"net"
 
 	"github.com/ethereum/go-ethereum/common"
 	pb "github.com/wfblockchain/gcp-kms-signer-dlt/proto"
 	"golang.org/x/exp/slices"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
-
-const rpcURL = "https://rpc.flashbots.net/"
 
 type server struct {
 	pb.UnimplementedAMLServiceServer
@@ -36,25 +30,5 @@ func (s *server) Check(ctx context.Context, request *pb.AMLReq) (*pb.AMLResp, er
 		return &pb.AMLResp{Block: true}, nil
 	} else {
 		return &pb.AMLResp{Block: false}, nil
-	}
-}
-
-func main() {
-	listener, err := net.Listen("tcp", ":50053")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := grpc.NewServer()
-
-	server, err := newServer()
-	if err != nil {
-		log.Fatal(err)
-	}
-	pb.RegisterAMLServiceServer(srv, server)
-	reflection.Register(srv)
-
-	if e := srv.Serve(listener); e != nil {
-		log.Fatal(err)
 	}
 }
