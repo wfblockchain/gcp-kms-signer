@@ -43,11 +43,6 @@ func newServer() (*server, error) {
 		log.Fatal(err)
 	}
 	client := pb.NewEthServiceClient(conn)
-	resp, err := client.NetworkID(ctx, &pb.Empty{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Print(resp.GetBigIntBytes())
 	return &server{signer: &signer, ethServiceClient: client}, nil
 }
 
