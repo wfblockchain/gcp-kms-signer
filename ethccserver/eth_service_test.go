@@ -1,4 +1,4 @@
-package main
+package ethccserver
 
 import (
 	"context"
@@ -15,24 +15,27 @@ import (
 
 const rpcURL = "https://rpc.flashbots.net/"
 
-func TestEthService(t *testing.T) {
+func serve() {
 	listener, err := net.Listen("tcp", ":50052")
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
 
 	srv := grpc.NewServer()
 
-	server, err := newServer(rpcURL)
+	server, err := NewServer(rpcURL)
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
-	pb.RegisterEthClientServiceServer(srv, server)
+	pb.RegisterEthServiceServer(srv, server)
 	reflection.Register(srv)
 
-	// TODO: handle potential error here
-	go srv.Serve(listener)
+	if err := srv.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func TestEthService(t *testing.T) {
 	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
 	if err != nil {
 		t.Fatal(err)
@@ -42,7 +45,9 @@ func TestEthService(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	client := pb.NewEthClientServiceClient(conn)
+	go serve()
+
+	client := pb.NewEthServiceClient(conn)
 	gasPriceResp, err := client.SuggestGasPrice(ctx, &pb.Empty{})
 	if err != nil {
 		t.Fatal(err)

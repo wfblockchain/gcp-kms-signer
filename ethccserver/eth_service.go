@@ -1,4 +1,4 @@
-package main
+package ethccserver
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 )
 
 type server struct {
-	pb.UnimplementedEthClientServiceServer
+	pb.UnimplementedEthServiceServer
 	ethclient *ec.Client
 }
 
-func newServer(rpcURL string) (*server, error) {
+func NewServer(rpcURL string) (*server, error) {
 	client, err := ec.Dial(rpcURL)
 	if err != nil {
 		return nil, err

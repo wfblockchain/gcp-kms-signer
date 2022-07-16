@@ -1,18 +1,18 @@
-package main
+package walletsignerserver
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"log"
-	"net"
+	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	ec "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/wfblockchain/gcp-kms-signer-dlt/digestsigner"
 	pb "github.com/wfblockchain/gcp-kms-signer-dlt/proto"
 	"github.com/wfblockchain/gcp-kms-signer-dlt/walletsigner"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var (
@@ -27,19 +27,44 @@ var (
 
 type server struct {
 	pb.UnimplementedWalletServiceServer
-	ethclient *ec.Client
-	signer    *walletsigner.Signer
+	ethServiceClient pb.EthServiceClient
+	signer           *walletsigner.Signer
 }
 
 func newServer() (*server, error) {
-
 	ctx := context.Background()
 	kmsSigner, err := digestsigner.NewKMSSigner(ctx, cred)
 	if err != nil {
 		return nil, err
 	}
 	signer := walletsigner.NewSigner(kmsSigner, 10*time.Second)
-	return &server{signer: &signer, ethclient: client}, nil
+	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := pb.NewEthServiceClient(conn)
+	resp, err := client.NetworkID(ctx, &pb.Empty{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp.GetBigIntBytes())
+	return &server{signer: &signer, ethServiceClient: client}, nil
+}
+
+func (s *server) GetSignerAddress(ctx context.Context) common.Address {
+	address, err := s.signer.GetPubAddress(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return address
+}
+
+func (s *server) GetSignerPk(ctx context.Context) (*ecdsa.PublicKey, error) {
+	pk, err := s.signer.GetPublicKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return pk, nil
 }
 
 func (s *server) Sign(ctx context.Context, request *pb.SignTxReq) (*pb.SignTxResp, error) {
@@ -47,11 +72,14 @@ func (s *server) Sign(ctx context.Context, request *pb.SignTxReq) (*pb.SignTxRes
 	tx := types.Transaction{}
 	tx.UnmarshalBinary(marshalledTx)
 
-	chainID, err := s.ethclient.NetworkID(ctx)
+	resp, err := s.ethServiceClient.NetworkID(ctx, &pb.Empty{})
 	if err != nil {
 		return nil, err
 	}
-	signedTx, err := s.signer.SignTx(s.signer.Accounts()[0], &tx, chainID)
+	var chainID big.Int
+	chainID.UnmarshalText(resp.GetBigIntBytes())
+
+	signedTx, err := s.signer.SignTx(s.signer.Accounts()[0], &tx, &chainID)
 	if err != nil {
 		return nil, err
 	}
@@ -59,26 +87,5 @@ func (s *server) Sign(ctx context.Context, request *pb.SignTxReq) (*pb.SignTxRes
 	if err != nil {
 		return nil, err
 	}
-
 	return &pb.SignTxResp{Tx: marshalledTx}, nil
-}
-
-func main() {
-	listener, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := grpc.NewServer()
-
-	server, err := newServer()
-	if err != nil {
-		log.Fatal(err)
-	}
-	pb.RegisterWalletServiceServer(srv, server)
-	reflection.Register(srv)
-
-	if e := srv.Serve(listener); e != nil {
-		log.Fatal(err)
-	}
 }

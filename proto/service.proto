@@ -7,7 +7,7 @@ service WalletService {
     rpc Sign(SignTxReq) returns (SignTxResp);
 }
 
-service EthClientService {
+service EthService {
     rpc NetworkID(Empty) returns (ECChainIDResp);
     rpc PendingNonceAt(ECNonceReq) returns (ECNonceResp);
     rpc SendTx(ECTxReq) returns (Empty);
