@@ -163,6 +163,8 @@ func runDemo() {
 	defer cancel()
 
 	ethServiceClient := createETHServiceClient()
+
+	log.Printf("Create and then send TX to %v (allow listed)", common.HexToAddress(sevaAddress))
 	tx, err := genDemoTx(ctx, ethServiceClient, sevaAddress)
 	if err != nil {
 		log.Fatal(err)
@@ -174,15 +176,13 @@ func runDemo() {
 		log.Fatal(err)
 	}
 
+	time.Sleep(3 * time.Second)
+
+	log.Printf("Create and then send TX to %v (block listed)", common.HexToAddress(blockedAddress))
 	tx, err = genDemoTx(ctx, ethServiceClient, blockedAddress)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	txBytes, err = tx.MarshalBinary()
-	_, err = ethServiceClient.SendTx(ctx, &pb.ECTxReq{Tx: txBytes})
-	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return
 	}
 }
 
