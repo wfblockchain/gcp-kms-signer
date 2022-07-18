@@ -1,4 +1,4 @@
-package main
+package amlserver
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type server struct {
 	blockList []string
 }
 
-func newServer() (*server, error) {
+func NewServer() (*server, error) {
 	w := make([]string, 5)
 	w[0] = "0x707E9E8D30e50dacD5C8866b658a4363c92FDdF2"
 	w[1] = "0x3A4bdd260b4f2F033a722a79e7ee4BF0539de73D"

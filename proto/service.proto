@@ -5,6 +5,8 @@ option go_package = "github.com/wfblockchain/gcp-kms-signer-dlt/proto;proto";
 
 service WalletService {
     rpc Sign(SignTxReq) returns (SignTxResp);
+    rpc GetSignerAddress(Empty) returns (SignerAddressResp);
+    rpc GetSignerPk(Empty) returns (SignerPkResp);
 }
 
 service EthService {
@@ -16,6 +18,14 @@ service EthService {
 
 service AMLService {
     rpc Check(AMLReq) returns (AMLResp);
+}
+
+message SignerAddressResp {
+    bytes addressBytes = 1;
+}
+
+message SignerPkResp {
+    bytes pkBytes = 1;
 }
 
 message AMLReq {

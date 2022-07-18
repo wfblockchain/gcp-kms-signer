@@ -11,14 +11,52 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	as "github.com/wfblockchain/gcp-kms-signer-dlt/amlserver"
 	es "github.com/wfblockchain/gcp-kms-signer-dlt/ethccserver"
 	pb "github.com/wfblockchain/gcp-kms-signer-dlt/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-const rpcURL = "https://cloudflare-eth.com"
+const rpcURL = "https://rpc.flashbots.net/"
 const sevaAddress = "0x4549f47920997A486e9986d2e3e4540230534A03"
+
+func serve() {
+	listener, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatal(err)
+	}
+	srv := grpc.NewServer()
+	server, err := NewServer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	pb.RegisterWalletServiceServer(srv, server)
+	reflection.Register(srv)
+
+	if err := srv.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func start_aml_service() {
+	listener, err := net.Listen("tcp", ":50053")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	srv := grpc.NewServer()
+	server, err := as.NewServer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	pb.RegisterAMLServiceServer(srv, server)
+	reflection.Register(srv)
+
+	if err := srv.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func start_eth_service() {
 	listener, err := net.Listen("tcp", ":50052")
@@ -65,20 +103,9 @@ func genTestTx(ctx context.Context, address common.Address) (*types.Transaction,
 }
 
 func TestWalletSignerService(t *testing.T) {
+	go start_aml_service()
 	go start_eth_service()
-
-	listener, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		t.Fatal(err)
-	}
-	srv := grpc.NewServer()
-	server, err := newServer()
-	if err != nil {
-		t.Fatal(err)
-	}
-	pb.RegisterWalletServiceServer(srv, server)
-	reflection.Register(srv)
-	go srv.Serve(listener)
+	go serve()
 
 	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
@@ -89,8 +116,10 @@ func TestWalletSignerService(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	address := server.GetSignerAddress(ctx)
-	tx, err := genTestTx(ctx, address)
+	client := pb.NewWalletServiceClient(conn)
+
+	resp, err := client.GetSignerAddress(ctx, &pb.Empty{})
+	tx, err := genTestTx(ctx, common.BytesToAddress(resp.GetAddressBytes()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +128,6 @@ func TestWalletSignerService(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	client := pb.NewWalletServiceClient(conn)
 	res, err := client.Sign(ctx, &pb.SignTxReq{Tx: txBytes})
 	if err != nil {
 		t.Fatal(err)

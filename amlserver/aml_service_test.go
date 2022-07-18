@@ -1,4 +1,4 @@
-package main
+package amlserver
 
 import (
 	"context"
@@ -13,28 +13,33 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func TestAMLService(t *testing.T) {
+func serve() {
 	listener, err := net.Listen("tcp", ":50053")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	srv := grpc.NewServer()
-	server, err := newServer()
+	server, err := NewServer()
 	if err != nil {
 		log.Fatal(err)
 	}
 	pb.RegisterAMLServiceServer(srv, server)
 	reflection.Register(srv)
 
-	// TODO: handle potential error here
-	go srv.Serve(listener)
+	if err := srv.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func TestAMLService(t *testing.T) {
 	conn, err := grpc.Dial("localhost:50053", grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
+
+	go serve()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

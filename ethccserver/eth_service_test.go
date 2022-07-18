@@ -36,6 +36,8 @@ func serve() {
 }
 
 func TestEthService(t *testing.T) {
+	go serve()
+
 	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
 	if err != nil {
 		t.Fatal(err)
@@ -44,8 +46,6 @@ func TestEthService(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-
-	go serve()
 
 	client := pb.NewEthServiceClient(conn)
 	gasPriceResp, err := client.SuggestGasPrice(ctx, &pb.Empty{})
