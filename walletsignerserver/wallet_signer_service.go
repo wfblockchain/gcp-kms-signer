@@ -2,6 +2,7 @@ package walletsignerserver
 
 import (
 	"context"
+	"errors"
 	"log"
 	"math/big"
 	"time"
@@ -76,9 +77,11 @@ func (s *server) Sign(ctx context.Context, request *pb.SignTxReq) (*pb.SignTxRes
 	tx.UnmarshalBinary(marshalledTx)
 
 	res, err := s.amlServiceClient.Check(ctx, &pb.AMLReq{AddressBytes: tx.To().Bytes()})
-	if err != nil || res.GetBlock() {
-		log.Print(res.GetBlock())
+	if err != nil {
 		return nil, err
+	}
+	if res.GetBlock() {
+		return nil, errors.New("block listed address detected")
 	}
 
 	resp, err := s.ethServiceClient.NetworkID(ctx, &pb.Empty{})

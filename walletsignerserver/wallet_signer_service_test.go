@@ -113,12 +113,15 @@ func TestWalletSignerService(t *testing.T) {
 	}
 	defer conn.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	client := pb.NewWalletServiceClient(conn)
 
 	resp, err := client.GetSignerAddress(ctx, &pb.Empty{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	tx, err := genTestTx(ctx, common.BytesToAddress(resp.GetAddressBytes()))
 	if err != nil {
 		t.Fatal(err)

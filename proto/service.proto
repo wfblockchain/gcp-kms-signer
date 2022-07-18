@@ -4,7 +4,7 @@ package proto;
 option go_package = "github.com/wfblockchain/gcp-kms-signer-dlt/proto;proto";
 
 service WalletService {
-    rpc Sign(SignTxReq) returns (SignTxResp);
+    rpc Sign(SignTxReq) returns (Empty);
     rpc GetSignerAddress(Empty) returns (SignerAddressResp);
     rpc GetSignerPk(Empty) returns (SignerPkResp);
 }
@@ -37,10 +37,6 @@ message AMLResp {
 }
 
 message SignTxReq {
-    bytes tx = 1;
-}
-
-message SignTxResp {
     bytes tx = 1;
 }
 
