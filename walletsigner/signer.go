@@ -2,12 +2,14 @@ package walletsigner
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -22,10 +24,16 @@ type Signer struct {
 }
 
 func NewSigner(ks *digestsigner.KMSSigner, timeout time.Duration) Signer {
-	signer := Signer{}
-	signer.kmsSigner = ks
-	signer.timeout = timeout
+	signer := Signer{kmsSigner: ks, timeout: timeout}
 	return signer
+}
+
+func (s *Signer) GetPublicKey(ctx context.Context) (*ecdsa.PublicKey, error) {
+	return s.kmsSigner.GetPublicKey(ctx)
+}
+
+func (s *Signer) GetPubAddress(ctx context.Context) (common.Address, error) {
+	return s.kmsSigner.GetPubAddress(ctx)
 }
 
 // URL retrieves the canonical path under which this wallet is reachable. It is

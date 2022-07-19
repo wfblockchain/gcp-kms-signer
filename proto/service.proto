@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "github.com/wfblockchain/gcp-kms-signer-dlt/proto;proto";
+
+service WalletService {
+    rpc Sign(SignTxReq) returns (Empty);
+    rpc GetSignerAddress(Empty) returns (SignerAddressResp);
+    rpc GetSignerPk(Empty) returns (SignerPkResp);
+}
+
+service EthService {
+    rpc NetworkID(Empty) returns (ECChainIDResp);
+    rpc PendingNonceAt(ECNonceReq) returns (ECNonceResp);
+    rpc SendTx(ECTxReq) returns (Empty);
+    rpc SuggestGasPrice(Empty) returns (ECGasPriceResp);
+}
+
+service AMLService {
+    rpc Check(AMLReq) returns (AMLResp);
+}
+
+message SignerAddressResp {
+    bytes addressBytes = 1;
+}
+
+message SignerPkResp {
+    bytes pkBytes = 1;
+}
+
+message AMLReq {
+    bytes addressBytes = 1;
+}
+
+message AMLResp {
+    bool block = 1;
+}
+
+message SignTxReq {
+    bytes tx = 1;
+}
+
+message ECNonceReq {
+    bytes addressBytes = 1;
+}
+
+message ECNonceResp {
+    uint64 nonce = 1;
+}
+
+message Empty {
+}
+
+message ECGasPriceResp {
+    bytes bigIntBytes = 1;
+}
+
+message ECTxReq {
+    bytes tx = 1;
+}
+
+message ECChainIDResp {
+    bytes bigIntBytes = 1;
+}
